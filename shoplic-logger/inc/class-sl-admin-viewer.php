@@ -166,71 +166,6 @@ class SL_Admin_Viewer {
         $log_prefix = ( $log_type === 'frontend' ) ? 'fe-log-' : 'log-';
         $log_file = SL_LOG_DIR . '/' . $plugin . '/' . $log_prefix . $current_date . '.log';
         
-        // 현재 로그 파일에서 태그, 로그 레벨, 클래스, 함수 추출
-        $available_tags = array();
-        $available_levels = array();
-        $available_classes = array();
-        $available_functions = array();
-        
-        if ( file_exists( $log_file ) ) {
-            $content = file_get_contents( $log_file );
-            
-            // Extract tags
-            preg_match_all( '/\[TAGS: ([^\]]+)\]/', $content, $matches );
-            if ( ! empty( $matches[1] ) ) {
-                foreach ( $matches[1] as $tag_string ) {
-                    $tags = explode( ', ', $tag_string );
-                    foreach ( $tags as $tag ) {
-                        $tag = trim( $tag );
-                        if ( ! empty( $tag ) ) {
-                            $available_tags[ $tag ] = true;
-                        }
-                    }
-                }
-            }
-            
-            // Extract log levels
-            preg_match_all( '/\[(LOG|ERROR|INFO|DEBUG|WARNING)\]/', $content, $level_matches );
-            if ( ! empty( $level_matches[1] ) ) {
-                foreach ( $level_matches[1] as $level ) {
-                    $available_levels[ $level ] = true;
-                }
-            }
-            
-            // Extract class::function patterns
-            preg_match_all( '/\[([^:]+)::([^\]]+)\]/', $content, $class_func_matches );
-            if ( ! empty( $class_func_matches[1] ) && ! empty( $class_func_matches[2] ) ) {
-                foreach ( $class_func_matches[1] as $index => $class ) {
-                    if ( ! in_array( $class, ['LOG', 'ERROR', 'INFO', 'DEBUG', 'WARNING'] ) ) {
-                        $available_classes[ $class ] = true;
-                        $available_functions[ $class_func_matches[2][$index] ] = true;
-                    }
-                }
-            }
-            
-            // Extract standalone functions
-            preg_match_all( '/\s\[([^\]:]+)\]\s/', $content, $func_matches );
-            if ( ! empty( $func_matches[1] ) ) {
-                foreach ( $func_matches[1] as $func ) {
-                    if ( ! in_array( $func, ['LOG', 'ERROR', 'INFO', 'DEBUG', 'WARNING'] ) &&
-                         strpos( $func, 'TAGS' ) === false &&
-                         ! preg_match( '/\d{4}-\d{2}-\d{2}/', $func ) ) {
-                        $available_functions[ $func ] = true;
-                    }
-                }
-            }
-        }
-        
-        $available_tags = array_keys( $available_tags );
-        $available_levels = array_keys( $available_levels );
-        $available_classes = array_keys( $available_classes );
-        $available_functions = array_keys( $available_functions );
-        
-        sort( $available_tags );
-        sort( $available_levels );
-        sort( $available_classes );
-        sort( $available_functions );
-        
         $log_type_label = ( $log_type === 'frontend' ) ? 'Frontend Logs' : 'Backend Logs';
         ?>
         <div class="sl-log-card" data-plugin="<?php echo esc_attr( $plugin ); ?>" data-log-type="<?php echo esc_attr( $log_type ); ?>">
@@ -245,76 +180,6 @@ class SL_Admin_Viewer {
                     <?php endforeach; ?>
                 </select>
             </div>
-            
-            <?php if ( ! empty( $available_tags ) || ! empty( $available_levels ) || ! empty( $available_classes ) || ! empty( $available_functions ) ) : ?>
-            <div class="sl-tag-filter-wrapper">
-                <div class="sl-tag-filter-controls">
-                    <button type="button" class="button button-small sl-filter-clear-all">모든 필터 해제</button>
-                    <div class="sl-filter-mode">
-                        <label>
-                            <input type="radio" name="filter-mode-<?php echo esc_attr( $plugin ); ?>" value="or" checked>
-                            <span>OR (하나라도)</span>
-                        </label>
-                        <label>
-                            <input type="radio" name="filter-mode-<?php echo esc_attr( $plugin ); ?>" value="and">
-                            <span>AND (모두)</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <?php if ( ! empty( $available_levels ) ) : ?>
-                <div class="sl-filter-section">
-                    <h4 style="margin: 10px 0 5px 0; font-size: 13px; color: #666;">로그 레벨</h4>
-                    <div class="sl-tag-filter-buttons">
-                        <?php foreach ( $available_levels as $level ) : ?>
-                            <button type="button" class="button button-small sl-filter-level-btn" data-level="<?php echo esc_attr( $level ); ?>">
-                                <?php echo esc_html( $level ); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-                
-                <?php if ( ! empty( $available_classes ) ) : ?>
-                <div class="sl-filter-section">
-                    <h4 style="margin: 10px 0 5px 0; font-size: 13px; color: #666;">클래스</h4>
-                    <div class="sl-tag-filter-buttons">
-                        <?php foreach ( $available_classes as $class ) : ?>
-                            <button type="button" class="button button-small sl-filter-class-btn" data-class="<?php echo esc_attr( $class ); ?>">
-                                <?php echo esc_html( $class ); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-                
-                <?php if ( ! empty( $available_functions ) ) : ?>
-                <div class="sl-filter-section">
-                    <h4 style="margin: 10px 0 5px 0; font-size: 13px; color: #666;">함수</h4>
-                    <div class="sl-tag-filter-buttons">
-                        <?php foreach ( $available_functions as $func ) : ?>
-                            <button type="button" class="button button-small sl-filter-function-btn" data-function="<?php echo esc_attr( $func ); ?>">
-                                <?php echo esc_html( $func ); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-                
-                <?php if ( ! empty( $available_tags ) ) : ?>
-                <div class="sl-filter-section">
-                    <h4 style="margin: 10px 0 5px 0; font-size: 13px; color: #666;">태그</h4>
-                    <div class="sl-tag-filter-buttons">
-                        <?php foreach ( $available_tags as $tag ) : ?>
-                            <button type="button" class="button button-small sl-filter-tag-btn" data-tag="<?php echo esc_attr( $tag ); ?>">
-                                <?php echo esc_html( $tag ); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </div>
-            <?php endif; ?>
             
             <div class="sl-log-actions">
                 <button type="button" class="button sl-clear-log" data-plugin="<?php echo esc_attr( $plugin ); ?>" data-date="<?php echo esc_attr( $current_date ); ?>" data-log-type="<?php echo esc_attr( $log_type ); ?>">전체 비우기</button>
@@ -446,22 +311,6 @@ class SL_Admin_Viewer {
         $content = preg_replace( '/\[INFO\]/', '<span style="color: #17a2b8;">[INFO]</span>', $content );
         $content = preg_replace( '/\[DEBUG\]/', '<span style="color: #6c757d;">[DEBUG]</span>', $content );
         $content = preg_replace( '/\[LOG\]/', '<span style="color: #28a745;">[LOG]</span>', $content );
-        
-        // 태그를 클릭 가능한 배지로 형식화
-        $content = preg_replace_callback(
-            '/\[TAGS: ([^\]]+)\]/',
-            function( $matches ) {
-                $tags = explode( ', ', $matches[1] );
-                $tag_html = '<span class="sl-tags">';
-                foreach ( $tags as $tag ) {
-                    $tag = trim( $tag );
-                    $tag_html .= '<span class="sl-tag" data-tag="' . esc_attr( $tag ) . '" style="background-color: #007cba; color: white; padding: 2px 6px; margin: 0 2px; border-radius: 3px; cursor: pointer; font-size: 11px;">' . esc_html( $tag ) . '</span>';
-                }
-                $tag_html .= '</span>';
-                return $tag_html;
-            },
-            $content
-        );
         
         return $content;
     }

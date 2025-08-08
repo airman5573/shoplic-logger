@@ -56,6 +56,7 @@ if ( ! function_exists( 'sl_init_plugin' ) ) {
         // Initialize components if in admin
         if ( is_admin() ) {
             new SL_Admin_Viewer();
+            // Initialize AJAX handler (needs to be available for admin-ajax.php)
             new SL_Ajax_Handler();
         }
         

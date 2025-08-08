@@ -64,13 +64,25 @@ class SL_Ajax_Handler {
         $log_file = SL_LOG_DIR . '/' . $plugin . '/' . $log_prefix . $date . '.log';
         
         if ( file_exists( $log_file ) ) {
+            // Check if file is writable
+            if ( ! is_writable( $log_file ) ) {
+                wp_send_json_error( 'Log file is not writable. Path: ' . $log_file );
+                return;
+            }
+            
             if ( file_put_contents( $log_file, '' ) !== false ) {
                 wp_send_json_success();
             } else {
-                wp_send_json_error( 'Failed to clear log file' );
+                wp_send_json_error( 'Failed to clear log file. Path: ' . $log_file );
             }
         } else {
-            wp_send_json_error( 'Log file not found' );
+            // Check if directory exists
+            $log_dir = dirname( $log_file );
+            if ( ! is_dir( $log_dir ) ) {
+                wp_send_json_error( 'Log directory does not exist. Path: ' . $log_dir );
+            } else {
+                wp_send_json_error( 'Log file not found. Path: ' . $log_file );
+            }
         }
     }
     
