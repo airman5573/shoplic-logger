@@ -28,7 +28,6 @@ class SL_Ajax_Handler {
         add_action( 'wp_ajax_sl_refresh_log', array( $this, 'ajax_refresh_log' ) );
         
         // 디버그 설정 AJAX 핸들러
-        add_action( 'wp_ajax_sl_save_debug_settings', array( $this, 'ajax_save_debug_settings' ) );
         add_action( 'wp_ajax_sl_download_wp_config', array( $this, 'ajax_download_wp_config' ) );
         
         // debug.log AJAX 핸들러
@@ -180,103 +179,6 @@ class SL_Ajax_Handler {
                 'content' => '<p>로그가 없습니다.</p>',
                 'size' => '0 B'
             ) );
-        }
-    }
-    
-    /**
-     * 디버그 설정 저장을 위한 AJAX 핸들러
-     */
-    public function ajax_save_debug_settings() {
-        if ( ! wp_verify_nonce( $_POST['nonce'], 'sl_ajax_nonce' ) || ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( 'Permission denied' );
-            return;
-        }
-        
-        try {
-            require_once SL_PLUGIN_DIR . '/vendor/WPConfigTransformer.php';
-            
-            $config_path = ABSPATH . 'wp-config.php';
-            if ( ! file_exists( $config_path ) ) {
-                wp_send_json_error( 'wp-config.php 파일을 찾을 수 없습니다.' );
-                return;
-            }
-            
-            if ( ! is_writable( $config_path ) ) {
-                wp_send_json_error( 'wp-config.php 파일에 쓰기 권한이 없습니다.' );
-                return;
-            }
-            
-            $config_transformer = new WPConfigTransformer( $config_path );
-            
-            // POST에서 디버그 설정 가져오기
-            $settings = array(
-                'WP_DEBUG' => isset( $_POST['wp_debug'] ) && $_POST['wp_debug'] === '1',
-                'WP_DEBUG_LOG' => isset( $_POST['wp_debug_log'] ) && $_POST['wp_debug_log'] === '1',
-                'WP_DEBUG_DISPLAY' => isset( $_POST['wp_debug_display'] ) && $_POST['wp_debug_display'] === '1',
-                'SCRIPT_DEBUG' => isset( $_POST['script_debug'] ) && $_POST['script_debug'] === '1',
-                'SAVEQUERIES' => isset( $_POST['savequeries'] ) && $_POST['savequeries'] === '1',
-                'WP_DISABLE_FATAL_ERROR_HANDLER' => isset( $_POST['wp_disable_fatal_error_handler'] ) && $_POST['wp_disable_fatal_error_handler'] === '1'
-            );
-            
-            // 메모리 제한 설정 가져오기 및 유효성 검사
-            $memory_limit = isset( $_POST['wp_memory_limit'] ) ? intval( $_POST['wp_memory_limit'] ) : 40;
-            $max_memory_limit = isset( $_POST['wp_max_memory_limit'] ) ? intval( $_POST['wp_max_memory_limit'] ) : 256;
-            
-            // 유효성 검사
-            if ( $memory_limit < 32 ) {
-                wp_send_json_error( 'WP_MEMORY_LIMIT는 최소 32MB 이상이어야 합니다.' );
-                return;
-            }
-            
-            if ( $max_memory_limit < $memory_limit ) {
-                wp_send_json_error( 'WP_MAX_MEMORY_LIMIT는 WP_MEMORY_LIMIT 이상이어야 합니다.' );
-                return;
-            }
-            
-            // 각 상수 업데이트
-            foreach ( $settings as $constant => $value ) {
-                $config_transformer->update(
-                    'constant',
-                    $constant,
-                    $value ? 'true' : 'false',
-                    array(
-                        'raw' => true,
-                        'normalize' => true,
-                        'add' => true
-                    )
-                );
-            }
-            
-            // 메모리 제한 상수 업데이트
-            $config_transformer->update(
-                'constant',
-                'WP_MEMORY_LIMIT',
-                "'{$memory_limit}M'",
-                array(
-                    'raw' => true,
-                    'normalize' => true,
-                    'add' => true
-                )
-            );
-            
-            $config_transformer->update(
-                'constant',
-                'WP_MAX_MEMORY_LIMIT',
-                "'{$max_memory_limit}M'",
-                array(
-                    'raw' => true,
-                    'normalize' => true,
-                    'add' => true
-                )
-            );
-            
-            wp_send_json_success( array(
-                'message' => '설정이 성공적으로 저장되었습니다.',
-                'settings' => $settings
-            ) );
-            
-        } catch ( Exception $e ) {
-            wp_send_json_error( '설정 저장 중 오류가 발생했습니다: ' . $e->getMessage() );
         }
     }
     

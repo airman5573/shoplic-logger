@@ -21,6 +21,11 @@ class SL_Debug_Settings {
      * 디버그 설정 페이지 렌더링
      */
     public function render_page() {
+        // POST 요청 처리
+        if ( isset( $_POST['sl_save_debug_settings'] ) && wp_verify_nonce( $_POST['sl_debug_nonce'], 'sl_debug_settings' ) ) {
+            $this->process_form_submission();
+        }
+        
         // 현재 상수 값 가져오기
         $current_settings = $this->get_current_settings();
         ?>
@@ -40,7 +45,8 @@ class SL_Debug_Settings {
                 </a>
             </div>
             
-            <form id="sl-debug-settings-form">
+            <form id="sl-debug-settings-form" method="post" action="">
+                <?php wp_nonce_field( 'sl_debug_settings', 'sl_debug_nonce' ); ?>
                 <table class="form-table">
                     <tbody>
                         <!-- WP_DEBUG -->
@@ -250,10 +256,9 @@ class SL_Debug_Settings {
                 </table>
                 
                 <p class="submit">
-                    <button type="submit" class="button button-primary" id="sl-save-debug-settings">
+                    <button type="submit" class="button button-primary" name="sl_save_debug_settings" id="sl-save-debug-settings">
                         설정 저장
                     </button>
-                    <span class="spinner"></span>
                 </p>
             </form>
         </div>
@@ -274,76 +279,111 @@ class SL_Debug_Settings {
         <script type="text/javascript">
         jQuery(document).ready(function($) {
             $('#sl-debug-settings-form').on('submit', function(e) {
-                e.preventDefault();
-                
-                var $form = $(this);
-                var $button = $('#sl-save-debug-settings');
-                var $spinner = $form.find('.spinner');
-                
                 // 메모리 제한 유효성 검사
                 var wpMemoryLimit = parseInt($('#wp_memory_limit').val());
                 var wpMaxMemoryLimit = parseInt($('#wp_max_memory_limit').val());
                 
                 if (wpMemoryLimit < 32) {
                     alert('WP_MEMORY_LIMIT는 최소 32MB 이상이어야 합니다.');
-                    return;
+                    e.preventDefault();
+                    return false;
                 }
                 
                 if (wpMaxMemoryLimit < wpMemoryLimit) {
                     alert('WP_MAX_MEMORY_LIMIT는 WP_MEMORY_LIMIT(' + wpMemoryLimit + 'MB) 이상이어야 합니다.');
-                    return;
+                    e.preventDefault();
+                    return false;
                 }
                 
-                // 로딩 상태 표시
-                $button.prop('disabled', true);
-                $spinner.addClass('is-active');
-                
-                // 데이터 준비
-                var data = {
-                    action: 'sl_save_debug_settings',
-                    nonce: sl_ajax.nonce,
-                    wp_debug: $('#wp_debug').is(':checked') ? '1' : '0',
-                    wp_debug_log: $('#wp_debug_log').is(':checked') ? '1' : '0',
-                    wp_debug_display: $('#wp_debug_display').is(':checked') ? '1' : '0',
-                    script_debug: $('#script_debug').is(':checked') ? '1' : '0',
-                    savequeries: $('#savequeries').is(':checked') ? '1' : '0',
-                    wp_disable_fatal_error_handler: $('#wp_disable_fatal_error_handler').is(':checked') ? '1' : '0',
-                    wp_memory_limit: wpMemoryLimit,
-                    wp_max_memory_limit: wpMaxMemoryLimit
-                };
-                
-                // AJAX 요청 전송
-                $.post(sl_ajax.ajax_url, data, function(response) {
-                    if (response.success) {
-                        // 성공 메시지 표시
-                        var $notice = $('<div class="notice notice-success is-dismissible"><p>' + response.data.message + '</p></div>');
-                        $form.before($notice);
-                        
-                        // 5초 후 자동 사라짐
-                        setTimeout(function() {
-                            $notice.fadeOut(function() {
-                                $(this).remove();
-                            });
-                        }, 5000);
-                    } else {
-                        // 오류 메시지 표시
-                        var $notice = $('<div class="notice notice-error is-dismissible"><p>' + response.data + '</p></div>');
-                        $form.before($notice);
-                    }
-                })
-                .fail(function() {
-                    var $notice = $('<div class="notice notice-error is-dismissible"><p>설정 저장 중 오류가 발생했습니다.</p></div>');
-                    $form.before($notice);
-                })
-                .always(function() {
-                    // 로딩 상태 초기화
-                    $button.prop('disabled', false);
-                    $spinner.removeClass('is-active');
-                });
+                return true;
             });
         });
         </script>
         <?php
+    }
+    
+    /**
+     * 폼 제출 처리
+     */
+    private function process_form_submission() {
+        // wp-config.php 경로 찾기
+        $config_path = $this->find_wp_config();
+        
+        if ( ! $config_path ) {
+            echo '<div class="notice notice-error"><p>wp-config.php 파일을 찾을 수 없습니다.</p></div>';
+            return;
+        }
+        
+        if ( ! is_writable( $config_path ) ) {
+            echo '<div class="notice notice-error"><p>wp-config.php 파일에 쓰기 권한이 없습니다.</p></div>';
+            return;
+        }
+        
+        // vendor 파일 포함
+        require_once SL_PLUGIN_DIR . '/vendor/WPConfigTransformer.php';
+        
+        $config_transformer = new \DebugLogConfigTool\vendor\WPConfigTransformer( $config_path );
+        
+        // POST에서 디버그 설정 가져오기
+        $settings = array(
+            'WP_DEBUG' => isset( $_POST['wp_debug'] ) && $_POST['wp_debug'] === '1',
+            'WP_DEBUG_LOG' => isset( $_POST['wp_debug_log'] ) && $_POST['wp_debug_log'] === '1',
+            'WP_DEBUG_DISPLAY' => isset( $_POST['wp_debug_display'] ) && $_POST['wp_debug_display'] === '1',
+            'SCRIPT_DEBUG' => isset( $_POST['script_debug'] ) && $_POST['script_debug'] === '1',
+            'SAVEQUERIES' => isset( $_POST['savequeries'] ) && $_POST['savequeries'] === '1',
+            'WP_DISABLE_FATAL_ERROR_HANDLER' => isset( $_POST['wp_disable_fatal_error_handler'] ) && $_POST['wp_disable_fatal_error_handler'] === '1'
+        );
+        
+        // 메모리 제한 설정
+        $memory_settings = array(
+            'WP_MEMORY_LIMIT' => isset( $_POST['wp_memory_limit'] ) ? intval( $_POST['wp_memory_limit'] ) . 'M' : '40M',
+            'WP_MAX_MEMORY_LIMIT' => isset( $_POST['wp_max_memory_limit'] ) ? intval( $_POST['wp_max_memory_limit'] ) . 'M' : '256M'
+        );
+        
+        try {
+            // Boolean 상수 업데이트
+            foreach ( $settings as $constant => $value ) {
+                if ( $config_transformer->exists( 'constant', $constant ) ) {
+                    $config_transformer->update( 'constant', $constant, $value ? 'true' : 'false', array( 'raw' => true ) );
+                } else {
+                    $config_transformer->add( 'constant', $constant, $value ? 'true' : 'false', array( 'raw' => true ) );
+                }
+            }
+            
+            // 메모리 제한 상수 업데이트
+            foreach ( $memory_settings as $constant => $value ) {
+                if ( $config_transformer->exists( 'constant', $constant ) ) {
+                    $config_transformer->update( 'constant', $constant, $value );
+                } else {
+                    $config_transformer->add( 'constant', $constant, $value );
+                }
+            }
+            
+            echo '<div class="notice notice-success"><p>디버그 설정이 성공적으로 저장되었습니다.</p></div>';
+            
+        } catch ( Exception $e ) {
+            echo '<div class="notice notice-error"><p>설정 저장 중 오류가 발생했습니다: ' . esc_html( $e->getMessage() ) . '</p></div>';
+        }
+    }
+    
+    /**
+     * wp-config.php 파일 경로 찾기
+     */
+    private function find_wp_config() {
+        $config_path = ABSPATH . 'wp-config.php';
+        
+        if ( file_exists( $config_path ) ) {
+            return $config_path;
+        }
+        
+        // 한 단계 상위 디렉토리 확인
+        $config_path = dirname( ABSPATH ) . '/wp-config.php';
+        
+        if ( file_exists( $config_path ) ) {
+            return $config_path;
+        }
+        
+        return false;
     }
     
     /**
