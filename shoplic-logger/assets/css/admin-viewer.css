@@ -1,6 +1,6 @@
 #sl-logs-grid {
     display: grid !important;
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     gap: 20px !important;
     margin-top: 20px !important;
 }
