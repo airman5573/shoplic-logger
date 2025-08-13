@@ -489,7 +489,7 @@ window.sl(log_level, plugin_name, file_path, class_name, function_name, message,
                     
                     <h4>매개변수 설명:</h4>
                     <ul style="line-height: 1.8;">
-                        <li><code>log_level</code>: 'LOG', 'ERROR', 'INFO', 'WARNING', 'DEBUG' (DEBUG는 WP_DEBUG가 true일 때만 작동)</li>
+                        <li><code>log_level</code>: 'LOG', 'ERROR', 'INFO', 'WARNING', 'DEBUG'</li>
                         <li><code>plugin_name</code>: 플러그인 또는 테마 식별자 (예: 'woocommerce', 'my-plugin')</li>
                         <li><code>file_path</code>: 절대 파일 경로 (PHP에서는 __FILE__, JS에서는 전체 경로)</li>
                         <li><code>class_name</code>: 클래스 이름 또는 빈 문자열</li>
@@ -667,7 +667,7 @@ grep -r "slt#" --include="*.php" --include="*.js" | grep -o "slt#[^'\"]*" | sort
                     <ul style="line-height: 1.8;">
                         <li>프론트엔드 로깅은 모든 사용자에게 작동 (인증 불필요)</li>
                         <li>프론트엔드 로그는 자동으로 배치되어 2초마다 전송</li>
-                        <li>DEBUG 로그는 WP_DEBUG가 활성화되어야만 작동</li>
+                        <li>DEBUG 로그는 WP_DEBUG와 독립적으로 작동</li>
                         <li>파일 경로는 로그에서 자동으로 상대 경로로 변환</li>
                     </ul>
                 </div>

@@ -41,10 +41,6 @@
             log_level = LOG_LEVELS.LOG;
         }
         
-        // Check debug level
-        if (log_level === LOG_LEVELS.DEBUG && !config.wpDebug) {
-            return;
-        }
         
         // Check if any tag has @on suffix
         let shouldOutput = false;

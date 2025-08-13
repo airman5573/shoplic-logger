@@ -36,10 +36,6 @@ class SL {
             $log_level = self::LOG;
         }
         
-        // Check debug level
-        if ( $log_level === self::DEBUG && ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) ) {
-            return;
-        }
         
         // Determine source from caller
         $source = 'backend';
@@ -182,7 +178,7 @@ class SL {
      * <span title="개발 중 문제를 해결하기 위해 사용하는 모드">디버그 모드</span>가 활성화되었는지 확인
      */
     public static function is_debug_mode() {
-        return defined( 'WP_DEBUG' ) && WP_DEBUG;
+        return true; // shoplic-logger는 WP_DEBUG와 독립적으로 작동
     }
     
     /**

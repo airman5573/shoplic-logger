@@ -93,7 +93,7 @@ class SL_Debug_Settings {
                                 <p class="description">
                                     오류를 /wp-content/debug.log 파일에 저장합니다.<br>
                                     • 위치: /wp-content/debug.log<br>
-                                    • 조건: WP_DEBUG가 true일 때만 작동<br>
+                                    • 조건: WP_DEBUG와 독립적으로 작동<br>
                                     • 용도: 화면에 표시하지 않고 오류를 기록할 때 유용<br>
                                     • 팁: 로그 파일이 커질 수 있으므로 정기적으로 확인 및 정리 필요
                                 </p>
