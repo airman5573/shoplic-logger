@@ -130,6 +130,12 @@ class SL_Admin_Viewer {
         $plugins = $this->get_logged_plugins();
         
         if ( ! empty( $plugins ) || file_exists( WP_CONTENT_DIR . '/debug.log' ) ) : ?>
+            <div style="margin: 20px 0;">
+                <button type="button" class="button button-primary sl-refresh-all-logs" style="font-size: 14px; padding: 8px 16px;">
+                    <span class="dashicons dashicons-update" style="vertical-align: middle; margin-right: 5px;"></span>
+                    모든 로그 새로고침
+                </button>
+            </div>
             <div id="sl-logs-grid">
                 <?php
                 foreach ( $plugins as $plugin ) {

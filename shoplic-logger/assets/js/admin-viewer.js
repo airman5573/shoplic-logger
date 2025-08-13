@@ -349,4 +349,73 @@ jQuery(document).ready(function($) {
             logContent.html(originalContent);
         }
     });
+    
+    // 모든 로그 새로고침
+    $(document).on('click', '.sl-refresh-all-logs', function() {
+        var button = $(this);
+        var originalText = button.html();
+        
+        // 버튼 비활성화 및 로딩 표시
+        button.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> 새로고침 중...');
+        
+        // 모든 로그 카드 찾기
+        var allCards = $('.sl-log-card');
+        var refreshPromises = [];
+        
+        allCards.each(function() {
+            var card = $(this);
+            var plugin = card.data('plugin');
+            
+            if (plugin === 'debug-log') {
+                // debug.log 새로고침
+                card.addClass('sl-loading');
+                
+                var promise = $.post(sl_ajax.ajax_url, {
+                    action: 'sl_refresh_debug_log',
+                    nonce: sl_ajax.nonce
+                }).done(function(response) {
+                    if (response.success) {
+                        card.find('.sl-debug-log-content').html(response.data.content);
+                        card.find('.sl-debug-log-size').text(response.data.size);
+                        card.find('.sl-debug-log-content').data('original-content', response.data.content);
+                    }
+                }).always(function() {
+                    card.removeClass('sl-loading');
+                });
+                
+                refreshPromises.push(promise);
+            } else {
+                // 일반 플러그인 로그 새로고침
+                var logType = card.data('log-type');
+                var date = card.find('.sl-log-date-select').val();
+                
+                if (date) {
+                    card.addClass('sl-loading');
+                    
+                    var promise = $.post(sl_ajax.ajax_url, {
+                        action: 'sl_refresh_log',
+                        plugin: plugin,
+                        date: date,
+                        log_type: logType,
+                        nonce: sl_ajax.nonce
+                    }).done(function(response) {
+                        if (response.success) {
+                            card.find('.sl-log-content').html(response.data.content);
+                            card.find('.sl-log-size').text(response.data.size);
+                            card.trigger('sl-content-updated');
+                        }
+                    }).always(function() {
+                        card.removeClass('sl-loading');
+                    });
+                    
+                    refreshPromises.push(promise);
+                }
+            }
+        });
+        
+        // 모든 새로고침이 완료되면 버튼 복원
+        $.when.apply($, refreshPromises).always(function() {
+            button.prop('disabled', false).html(originalText);
+        });
+    });
 });
