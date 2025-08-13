@@ -130,10 +130,14 @@ class SL_Admin_Viewer {
         $plugins = $this->get_logged_plugins();
         
         if ( ! empty( $plugins ) || file_exists( WP_CONTENT_DIR . '/debug.log' ) ) : ?>
-            <div style="margin: 20px 0;">
+            <div style="margin: 20px 0; display: flex; gap: 10px;">
                 <button type="button" class="button button-primary sl-refresh-all-logs" style="font-size: 14px; padding: 8px 16px;">
                     <span class="dashicons dashicons-update" style="vertical-align: middle; margin-right: 5px;"></span>
                     모든 로그 새로고침
+                </button>
+                <button type="button" class="button sl-clear-all-logs" style="font-size: 14px; padding: 8px 16px; background: #dc3545; border-color: #dc3545; color: #fff;">
+                    <span class="dashicons dashicons-trash" style="vertical-align: middle; margin-right: 5px;"></span>
+                    모든 로그 지우기
                 </button>
             </div>
             <div id="sl-logs-grid">

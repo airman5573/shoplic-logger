@@ -418,4 +418,88 @@ jQuery(document).ready(function($) {
             button.prop('disabled', false).html(originalText);
         });
     });
+    
+    // 모든 로그 지우기
+    $(document).on('click', '.sl-clear-all-logs', function() {
+        var button = $(this);
+        var originalText = button.html();
+        
+        // 버튼 비활성화 및 로딩 표시
+        button.prop('disabled', true).html('<span class="dashicons dashicons-trash spin"></span> 지우는 중...');
+        
+        // 모든 로그 카드 찾기
+        var allCards = $('.sl-log-card');
+        var clearPromises = [];
+        
+        allCards.each(function() {
+            var card = $(this);
+            var plugin = card.data('plugin');
+            
+            if (plugin === 'debug-log') {
+                // debug.log 지우기
+                card.addClass('sl-loading');
+                
+                var promise = $.ajax({
+                    url: sl_ajax.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'sl_clear_debug_log',
+                        nonce: sl_ajax.nonce
+                    }
+                }).done(function(response) {
+                    if (response.success) {
+                        card.find('.sl-debug-log-content').html('<p>debug.log 파일이 없습니다.</p>');
+                        card.find('.sl-debug-log-size').text('0 B');
+                    }
+                }).always(function() {
+                    card.removeClass('sl-loading');
+                });
+                
+                clearPromises.push(promise);
+            } else {
+                // 일반 플러그인 로그 지우기
+                var logType = card.data('log-type');
+                var date = card.find('.sl-log-date-select').val();
+                
+                if (date) {
+                    card.addClass('sl-loading');
+                    
+                    var promise = $.ajax({
+                        url: sl_ajax.ajax_url,
+                        type: 'POST',
+                        data: {
+                            action: 'sl_clear_log',
+                            plugin: plugin,
+                            date: date,
+                            log_type: logType,
+                            nonce: sl_ajax.nonce
+                        }
+                    }).done(function(response) {
+                        if (response.success) {
+                            card.find('.sl-log-content').html('<p>로그가 없습니다.</p>');
+                            card.find('.sl-log-size').text('0 B');
+                        }
+                    }).always(function() {
+                        card.removeClass('sl-loading');
+                    });
+                    
+                    clearPromises.push(promise);
+                }
+            }
+        });
+        
+        // 모든 지우기가 완료되면 버튼 복원
+        $.when.apply($, clearPromises).always(function() {
+            button.prop('disabled', false).html(originalText);
+            
+            // 성공 메시지 표시
+            var successMsg = $('<span style="color: #46b450; margin-left: 10px;">✓ 모든 로그가 지워졌습니다.</span>');
+            button.after(successMsg);
+            setTimeout(function() {
+                successMsg.fadeOut(function() {
+                    successMsg.remove();
+                });
+            }, 3000);
+        });
+    });
 });

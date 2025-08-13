@@ -97,3 +97,7 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+.sl-clear-all-logs:hover {
+    background: #b32d2e !important;
+    border-color: #b32d2e !important;
+}
