@@ -1,0 +1,5 @@
+*
+!.gitignore
+!shoplic-logger.php
+!shoplic-logger/
+!shoplic-logger/**
