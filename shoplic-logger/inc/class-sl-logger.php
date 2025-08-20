@@ -30,6 +30,15 @@ class SL {
      * 통합 로그 기록
      */
     public static function log( $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data = null, $tags = [] ) {
+        // Ensure $tags is an array
+        if ( ! is_array( $tags ) ) {
+            if ( is_string( $tags ) && ! empty( $tags ) ) {
+                $tags = array( $tags );
+            } else {
+                $tags = array();
+            }
+        }
+        
         // Validate log level
         $valid_levels = [ self::LOG, self::ERROR, self::INFO, self::DEBUG, self::WARNING ];
         if ( ! in_array( $log_level, $valid_levels ) ) {
@@ -51,6 +60,15 @@ class SL {
      * @param string $source 'frontend' or 'backend' to indicate log source
      */
     private static function write( $level, $plugin_name, $file_path, $class_name, $function_name, $message, $data = null, $tags = [], $source = 'backend' ) {
+        // Ensure $tags is an array
+        if ( ! is_array( $tags ) ) {
+            if ( is_string( $tags ) && ! empty( $tags ) ) {
+                $tags = array( $tags );
+            } else {
+                $tags = array();
+            }
+        }
+        
         // Check if any tag has @on suffix
         $should_output = false;
         if ( ! empty( $tags ) ) {
