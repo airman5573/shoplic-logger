@@ -113,7 +113,7 @@ jQuery(document).ready(function($) {
                     if (navigator.clipboard && window.isSecureContext) {
                         navigator.clipboard.writeText(content).then(function() {
                             var originalText = button.text();
-                            button.text('✓ 복사됨');
+                            button.text('복사됨');
                             setTimeout(function() {
                                 button.text(originalText);
                             }, 2000);
@@ -129,7 +129,7 @@ jQuery(document).ready(function($) {
                         textArea.remove();
                         
                         var originalText = button.text();
-                        button.text('✓ 복사됨');
+                        button.text('복사됨');
                         setTimeout(function() {
                             button.text(originalText);
                         }, 2000);
@@ -231,7 +231,7 @@ jQuery(document).ready(function($) {
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(content).then(function() {
                 var originalText = button.text();
-                button.text('✓ 복사됨');
+                button.text('복사됨');
                 setTimeout(function() {
                     button.text(originalText);
                 }, 2000);
@@ -247,7 +247,7 @@ jQuery(document).ready(function($) {
             textArea.remove();
             
             var originalText = button.text();
-            button.text('✓ 복사됨');
+            button.text('복사됨');
             setTimeout(function() {
                 button.text(originalText);
             }, 2000);
@@ -493,7 +493,7 @@ jQuery(document).ready(function($) {
             button.prop('disabled', false).html(originalText);
             
             // 성공 메시지 표시
-            var successMsg = $('<span style="color: #46b450; margin-left: 10px;">✓ 모든 로그가 지워졌습니다.</span>');
+            var successMsg = $('<span style="color: #46b450; margin-left: 10px;">모든 로그가 지워졌습니다.</span>');
             button.after(successMsg);
             setTimeout(function() {
                 successMsg.fadeOut(function() {

@@ -266,7 +266,7 @@ class SL_Admin_Viewer {
                         
                         // 첫 줄이 잘릴 수 있으므로 첫 개행 문자 이후부터 표시
                         $content = substr( $content, strpos( $content, "\n" ) + 1 );
-                        echo '<p style="color: #ff6b6b; margin-bottom: 10px;">⚠️ 파일이 너무 커서 마지막 1MB만 표시합니다.</p>';
+                        echo '<p style="color: #ff6b6b; margin-bottom: 10px;">파일이 너무 커서 마지막 1MB만 표시합니다.</p>';
                     } else {
                         $content = file_get_contents( $debug_log_file );
                     }

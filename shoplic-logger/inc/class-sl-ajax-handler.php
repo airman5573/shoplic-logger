@@ -268,7 +268,7 @@ class SL_Ajax_Handler {
                 
                 // 첫 줄이 잘릴 수 있으므로 첫 개행 문자 이후부터 표시
                 $content = substr( $content, strpos( $content, "\n" ) + 1 );
-                $formatted_content = '<p style="color: #ff6b6b; margin-bottom: 10px;">⚠️ 파일이 너무 커서 마지막 1MB만 표시합니다.</p>';
+                $formatted_content = '<p style="color: #ff6b6b; margin-bottom: 10px;">파일이 너무 커서 마지막 1MB만 표시합니다.</p>';
                 $formatted_content .= $admin_viewer->format_debug_log_content( $content );
             } else {
                 $content = file_get_contents( $debug_log_file );
