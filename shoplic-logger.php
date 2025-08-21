@@ -73,7 +73,7 @@ add_action( 'wp_enqueue_scripts', 'sl_enqueue_frontend_scripts' );
 add_action( 'admin_enqueue_scripts', 'sl_enqueue_frontend_scripts' );
 
 // Register action hooks for logging (allows usage via do_action)
-add_action( 'sl_log', 'sl_log', 10, 8 );
+add_action( 'sl_log', 'sl_log', 10, 7 );
 
 // Schedule cleanup
 add_action( 'sl_cleanup_logs', array( 'SL', 'cleanup_old_logs' ) );

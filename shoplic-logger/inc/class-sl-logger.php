@@ -29,22 +29,12 @@ class SL {
     /**
      * 통합 로그 기록
      */
-    public static function log( $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data = null, $tags = [] ) {
-        // Ensure $tags is an array
-        if ( ! is_array( $tags ) ) {
-            if ( is_string( $tags ) && ! empty( $tags ) ) {
-                $tags = array( $tags );
-            } else {
-                $tags = array();
-            }
-        }
-        
+    public static function log( $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data = null ) {
         // Validate log level
         $valid_levels = [ self::LOG, self::ERROR, self::INFO, self::DEBUG, self::WARNING ];
         if ( ! in_array( $log_level, $valid_levels ) ) {
             $log_level = self::LOG;
         }
-        
         
         // Determine source from caller
         $source = 'backend';
@@ -52,39 +42,14 @@ class SL {
             $source = 'frontend';
         }
         
-        self::write( $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data, $tags, $source );
+        self::write( $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data, $source );
     }
     
     /**
      * 로그 파일에 쓰기
      * @param string $source 'frontend' or 'backend' to indicate log source
      */
-    private static function write( $level, $plugin_name, $file_path, $class_name, $function_name, $message, $data = null, $tags = [], $source = 'backend' ) {
-        // Ensure $tags is an array
-        if ( ! is_array( $tags ) ) {
-            if ( is_string( $tags ) && ! empty( $tags ) ) {
-                $tags = array( $tags );
-            } else {
-                $tags = array();
-            }
-        }
-        
-        // Check if any tag has @on suffix
-        $should_output = false;
-        if ( ! empty( $tags ) ) {
-            foreach ( $tags as $tag ) {
-                if ( strpos( $tag, '@on' ) !== false ) {
-                    $should_output = true;
-                    break;
-                }
-            }
-            // If tags exist but none have @on, don't output
-            if ( ! $should_output ) {
-                return;
-            }
-        }
-        // If no tags provided, output normally (for backward compatibility)
-        
+    private static function write( $level, $plugin_name, $file_path, $class_name, $function_name, $message, $data = null, $source = 'backend' ) {
         // Transform file path to relative path
         $relative_file_path = self::get_relative_path( $file_path );
         
@@ -110,19 +75,6 @@ class SL {
             $file_info = $relative_file_path;
         }
         
-        // Process tags - remove prefix and on/off state for log storage
-        $clean_tags = array();
-        if ( ! empty( $tags ) ) {
-            foreach ( $tags as $tag ) {
-                // Remove slt# prefix and @on/@off suffix
-                $clean_tag = preg_replace( '/^slt#/', '', $tag );
-                $clean_tag = preg_replace( '/@(on|off)$/', '', $clean_tag );
-                if ( ! empty( $clean_tag ) ) {
-                    $clean_tags[] = $clean_tag;
-                }
-            }
-        }
-        
         // Build class::function notation
         $class_function = '';
         if ( ! empty( $class_name ) && ! empty( $function_name ) ) {
@@ -139,11 +91,6 @@ class SL {
             $file_info,
             $message
         );
-        
-        // Add tags if present
-        if ( ! empty( $clean_tags ) ) {
-            $log_entry .= ' [TAGS: ' . implode( ', ', $clean_tags ) . ']';
-        }
         
         // 데이터가 제공된 경우 추가
         if ( $data !== null ) {

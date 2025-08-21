@@ -33,30 +33,12 @@
      * @param {string} function_name - Function name (can be empty string)
      * @param {string} message - Log message
      * @param {*} data - Additional data (optional)
-     * @param {Array} tags - Array of tags (optional)
      */
-    function sl(log_level, plugin_name, file_path, class_name, function_name, message, data = null, tags = []) {
+    function sl(log_level, plugin_name, file_path, class_name, function_name, message, data = null) {
         // Validate log level
         if (!LOG_LEVELS[log_level]) {
             log_level = LOG_LEVELS.LOG;
         }
-        
-        
-        // Check if any tag has @on suffix
-        let shouldOutput = false;
-        if (tags && tags.length > 0) {
-            for (let tag of tags) {
-                if (tag.includes('@on')) {
-                    shouldOutput = true;
-                    break;
-                }
-            }
-            // If tags exist but none have @on, don't output
-            if (!shouldOutput) {
-                return;
-            }
-        }
-        // If no tags provided, output normally
         
         // Add to queue
         logQueue.push({
@@ -67,7 +49,6 @@
             function_name: function_name,
             message: message,
             data: data,
-            tags: tags,
             timestamp: new Date().toISOString()
         });
         

@@ -484,18 +484,18 @@ class SL_Admin_Viewer {
                 <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; margin: 20px 0;">
                     <h2 style="margin-top: 0;">쇼플릭 로거 사용법</h2>
                     
-                    <h3>1. 태그 기반 로깅 시스템</h3>
-                    <p>쇼플릭 로거는 태그 기반 제어 시스템을 사용합니다. 모든 로그는 기본적으로 <code>@off</code> 상태의 태그로 작성되며, 필요한 태그를 <code>@on</code>으로 변경하여 로그를 활성화할 수 있습니다.</p>
+                    <h3>1. 로깅 시스템</h3>
+                    <p>쇼플릭 로거는 간단하고 효율적인 로깅 시스템을 제공합니다. 모든 로그는 자동으로 기록되며, 플러그인별로 자동 분류됩니다.</p>
                     
                     <h3>2. 핵심 API</h3>
                     
                     <h4>백엔드 (PHP)</h4>
                     <pre style="background: #f1f1f1; padding: 15px; overflow-x: auto;">
-do_action('sl_log', $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data, $tags);</pre>
+do_action('sl_log', $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data);</pre>
                     
                     <h4>프론트엔드 (JavaScript)</h4>
                     <pre style="background: #f1f1f1; padding: 15px; overflow-x: auto;">
-window.sl(log_level, plugin_name, file_path, class_name, function_name, message, data, tags);</pre>
+window.sl(log_level, plugin_name, file_path, class_name, function_name, message, data);</pre>
                     
                     <h4>매개변수 설명:</h4>
                     <ul style="line-height: 1.8;">
@@ -506,14 +506,13 @@ window.sl(log_level, plugin_name, file_path, class_name, function_name, message,
                         <li><code>function_name</code>: 함수/메서드 이름 또는 빈 문자열</li>
                         <li><code>message</code>: 로그 메시지</li>
                         <li><code>data</code>: 추가 데이터 (배열/객체) 또는 null</li>
-                        <li><code>tags</code>: 태그 배열, 형식: <code>['slt#tagname@off']</code></li>
                     </ul>
                     
                     <h3>3. 기본 사용법</h3>
                     
                     <h4>PHP 예제:</h4>
                     <pre style="background: #f1f1f1; padding: 15px; overflow-x: auto;">
-// 항상 태그는 @off 상태로 포함
+// 간단한 로그 기록
 do_action('sl_log',
     'LOG',
     'woocommerce',
@@ -521,8 +520,7 @@ do_action('sl_log',
     __CLASS__,
     __METHOD__,
     'Payment started',
-    $payment_data,
-    ['slt#payment@off', 'slt#checkout@off']
+    $payment_data
 );
 
 do_action('sl_log',
@@ -532,8 +530,7 @@ do_action('sl_log',
     __CLASS__,
     __METHOD__,
     'API timeout',
-    $error_data,
-    ['slt#api@off', 'slt#critical@off']
+    $error_data
 );</pre>
                     
                     <h4>JavaScript 예제:</h4>
@@ -546,8 +543,7 @@ window.sl(
     'CheckoutForm',
     'processPayment',
     'Payment started',
-    paymentData,
-    ['slt#payment@off', 'slt#checkout@off']
+    paymentData
 );
 
 window.sl(
@@ -557,32 +553,10 @@ window.sl(
     'ApiClient',
     'fetchData',
     'API timeout',
-    errorData,
-    ['slt#api@off', 'slt#critical@off']
+    errorData
 );</pre>
                     
-                    <h3>4. 태그 제어 명령어</h3>
-                    
-                    <h4>특정 태그 활성화:</h4>
-                    <pre style="background: #f1f1f1; padding: 15px; overflow-x: auto;">
-# 결제 관련 로그 활성화 (백엔드와 프론트엔드 모두)
-find . -name "*.php" -name "*.js" -type f -exec sed -i 's/slt#payment@off/slt#payment@on/g' {} +
-
-# 에러와 critical 로그 활성화
-find . -name "*.php" -name "*.js" -type f -exec sed -i -e 's/slt#error@off/slt#error@on/g' -e 's/slt#critical@off/slt#critical@on/g' {} +
-
-# WooCommerce 로그 활성화
-find . -name "*.php" -name "*.js" -type f -exec sed -i 's/slt#woocommerce@off/slt#woocommerce@on/g' {} +</pre>
-                    
-                    <h4>모든 로그 비활성화 (초기화):</h4>
-                    <pre style="background: #f1f1f1; padding: 15px; overflow-x: auto;">
-# PHP 파일 초기화
-find . -name "*.php" -type f -exec sed -i 's/@on\]/@off]/g' {} +
-
-# JavaScript 파일 초기화
-find . -name "*.js" -type f -exec sed -i 's/@on\]/@off]/g' {} +</pre>
-                    
-                    <h3>5. 실제 사용 예제</h3>
+                    <h3>4. 실제 사용 예제</h3>
                     
                     <h4>WooCommerce 주문 처리:</h4>
                     <pre style="background: #f1f1f1; padding: 15px; overflow-x: auto;">
@@ -601,7 +575,6 @@ add_action('woocommerce_new_order', function($order_id) {
             'total' => $order->get_total(),
             'customer_email' => $order->get_billing_email()
         ],
-        ['slt#woocommerce@off', 'slt#order@off', 'slt#sales@off']
     );
 });</pre>
                     
@@ -621,34 +594,19 @@ if (is_wp_error($response)) {
             'url' => $api_url,
             'error' => $response->get_error_message()
         ],
-        ['slt#api@off', 'slt#error@off', 'slt#critical@off']
     );
 }</pre>
                     
-                    <h3>6. 태그 검색 및 관리</h3>
-                    
-                    <h4>코드베이스의 모든 태그 찾기:</h4>
-                    <pre style="background: #f1f1f1; padding: 15px; overflow-x: auto;">
-# PHP 파일
-grep -r "slt#" --include="*.php" | grep -o "slt#[^'\"]*" | sort | uniq
-
-# JavaScript 파일
-grep -r "slt#" --include="*.js" | grep -o "slt#[^'\"]*" | sort | uniq
-
-# 모든 파일
-grep -r "slt#" --include="*.php" --include="*.js" | grep -o "slt#[^'\"]*" | sort | uniq</pre>
-                    
-                    <h3>7. 주요 기능</h3>
+                    <h3>5. 주요 기능</h3>
                     <ul style="line-height: 1.8;">
-                        <li><strong>태그 기반 제어:</strong> @on/@off 상태로 로그 출력 제어</li>
                         <li><strong>플러그인별 분류:</strong> 플러그인/테마별로 로그 자동 분류</li>
                         <li><strong>백엔드/프론트엔드 분리:</strong> PHP 로그는 log-*.log, JS 로그는 fe-log-*.log로 저장</li>
-                        <li><strong>실시간 필터링:</strong> 로그 레벨, 클래스, 함수, 태그별 필터링</li>
+                        <li><strong>실시간 필터링:</strong> 로그 레벨, 클래스, 함수별 필터링</li>
                         <li><strong>자동 정리:</strong> 7일 이상 된 로그 자동 삭제</li>
                         <li><strong>배치 처리:</strong> 프론트엔드 로그는 2초마다 자동 전송</li>
                     </ul>
                     
-                    <h3>8. 로그 파일 구조</h3>
+                    <h3>6. 로그 파일 구조</h3>
                     <pre style="background: #f1f1f1; padding: 15px; overflow-x: auto;">
 /wp-content/sl-logs/
 ├── woocommerce/
@@ -660,20 +618,13 @@ grep -r "slt#" --include="*.php" --include="*.js" | grep -o "slt#[^'\"]*" | sort
 └── frontend-unknown/
     └── fe-log-2024-01-15.log     (미확인 프론트엔드 로그)</pre>
                     
-                    <h3>9. 로그 형식</h3>
+                    <h3>7. 로그 형식</h3>
                     <p>로그는 다음 형식으로 저장됩니다:</p>
                     <pre style="background: #f1f1f1; padding: 15px; overflow-x: auto;">
-[2024-01-15 10:30:45] [INFO] [OrderController::processOrder] woocommerce/includes/class-order-controller.php:123 - New order processed [TAGS: woocommerce, order]</pre>
-                    <p>형식: <code>[timestamp] [level] [class::function] relative/file/path:line - message [TAGS: ...]</code></p>
+[2024-01-15 10:30:45] [INFO] [OrderController::processOrder] woocommerce/includes/class-order-controller.php:123 - New order processed</pre>
+                    <p>형식: <code>[timestamp] [level] [class::function] relative/file/path:line - message</code></p>
                     
-                    <h3>10. 태그 형식 규칙</h3>
-                    <ul style="line-height: 1.8;">
-                        <li><strong>코드에서:</strong> <code>['slt#tagname@off']</code> 또는 <code>['slt#tagname@on']</code></li>
-                        <li><strong>로그에서:</strong> <code>[TAGS: tagname]</code> (접두사/상태 없이 깔끔하게 표시)</li>
-                        <li><strong>출력 규칙:</strong> 최소 하나의 <code>@on</code> 태그가 있어야 파일에 기록됨</li>
-                    </ul>
-                    
-                    <h3>11. 중요 참고사항</h3>
+                    <h3>8. 중요 참고사항</h3>
                     <ul style="line-height: 1.8;">
                         <li>프론트엔드 로깅은 모든 사용자에게 작동 (인증 불필요)</li>
                         <li>프론트엔드 로그는 자동으로 배치되어 2초마다 전송</li>

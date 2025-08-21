@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // 통합 로깅을 위한 헬퍼 함수
 if ( ! function_exists( 'sl_log' ) ) {
-    function sl_log( $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data = null, $tags = [] ) {
-        \SL::log( $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data, $tags );
+    function sl_log( $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data = null ) {
+        \SL::log( $log_level, $plugin_name, $file_path, $class_name, $function_name, $message, $data );
     }
 }

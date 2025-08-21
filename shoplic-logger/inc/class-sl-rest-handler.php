@@ -72,7 +72,6 @@ class SL_Rest_Handler {
                 'function_name' => isset( $log['function_name'] ) ? sanitize_text_field( $log['function_name'] ) : '',
                 'message'       => isset( $log['message'] ) ? sanitize_text_field( $log['message'] ) : '',
                 'data'          => isset( $log['data'] ) ? $log['data'] : null,
-                'tags'          => isset( $log['tags'] ) && is_array( $log['tags'] ) ? array_map( 'sanitize_text_field', $log['tags'] ) : array(),
             );
         }
         
@@ -101,7 +100,6 @@ class SL_Rest_Handler {
                 $function_name = isset( $log['function_name'] ) ? $log['function_name'] : '';
                 $message       = isset( $log['message'] ) ? $log['message'] : '';
                 $data          = isset( $log['data'] ) ? $log['data'] : null;
-                $tags          = isset( $log['tags'] ) ? $log['tags'] : array();
                 
                 // Skip empty messages
                 if ( empty( $message ) ) {
@@ -109,7 +107,7 @@ class SL_Rest_Handler {
                 }
                 
                 // Call the unified log method with all parameters
-                SL::log( $level, $plugin_name, $file_path, $class_name, $function_name, $message, $data, $tags );
+                SL::log( $level, $plugin_name, $file_path, $class_name, $function_name, $message, $data );
                 
                 $processed++;
             } catch ( Exception $e ) {
